@@ -95,10 +95,19 @@ typedef struct {
     PyObject_HEAD
     git_patch *patch;
     PyObject* hunks;
+    Blob* oldblob;
+    Blob* newblob;
 } Patch;
 
 /* git_diff */
 SIMPLE_TYPE(Diff, git_diff, diff)
+
+typedef struct {
+    PyObject_HEAD
+    Diff *diff;
+    size_t i;
+    size_t n;
+} DeltasIter;
 
 typedef struct {
     PyObject_HEAD
