@@ -1290,6 +1290,38 @@ Repository_listall_submodules(Repository *self, PyObject *args)
 }
 
 
+PyDoc_STRVAR(Repository_listall_submodules_name__doc__,
+  "listall_submodules_name() -> [str, ...]\n"
+  "\n"
+  "Return a list with all submodule names in the repository.\n");
+
+static int foreach_name_cb(git_submodule *submodule, const char *name, void *payload)
+{
+    PyObject *list = (PyObject *)payload;
+    PyObject *path = to_unicode(git_submodule_name(submodule), NULL, NULL);
+
+    return PyList_Append(list, path);
+}
+
+PyObject *
+Repository_listall_submodules_name(Repository *self, PyObject *args)
+{
+    int err;
+    PyObject *list;
+
+    list = PyList_New(0);
+    if (list == NULL)
+        return NULL;
+
+    err = git_submodule_foreach(self->repo, foreach_name_cb, list);
+    if (err != 0) {
+        Py_DECREF(list);
+        return Py_None;
+    }
+
+    return list;
+}
+
 PyDoc_STRVAR(Repository_init_submodules__doc__,
     "init_submodule(submodules=None, overwrite=False)\n"
     "\n"
@@ -1878,6 +1910,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, listall_references, METH_NOARGS),
     METHOD(Repository, listall_reference_objects, METH_NOARGS),
     METHOD(Repository, listall_submodules, METH_NOARGS),
+    METHOD(Repository, listall_submodules_name, METH_NOARGS),
     METHOD(Repository, init_submodules, METH_VARARGS | METH_KEYWORDS),
     METHOD(Repository, update_submodules, METH_VARARGS | METH_KEYWORDS),
     METHOD(Repository, lookup_reference, METH_O),
